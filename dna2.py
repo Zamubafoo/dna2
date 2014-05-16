@@ -39,14 +39,7 @@ class Poly:
 		return "Color:\n\tRed: {}\n\tGreen: {}\n\tBlue: {}\n\tAlpha: {}\nVerticies:\n\t{}".format(self.r,self.g,self.b,self.a,'\n\t'.join(str(i) for i in self.verts))
 		
 class DNA:
-	def __init__(self, rawDNA, numPoints):
-		self.polys = []
-		processedDNA = [[sup('d',i)[0] for i in chunk(k,8)][0:4+int(numPoints)*2] for k in chunk(rawDNA,288)]
-		for i in processedDNA:
-			self.polys.append(Poly(i[0],i[1],i[2],i[3],i[4:]))
-	
-	def json(self):
-		fn = raw_input('File Name? ')
+	def json(self, fn):
 		with open('{}.json'.format(fn.lower()),'w') as f:
 			f.write(json.dumps(dict(zip(xrange(0,len(self.polys),1),[i.dict for i in self.polys]))))
 	
@@ -55,14 +48,17 @@ class DNA:
 		for poly in self.polys:
 			poly.draw2svg(canvas, int(scale))
 		canvas.save()
-
-if __name__ == "__main__":
-	from sys import argv
-	print argv
-	with open(argv[1]) as f:
-		rawDNA=f.read()
-	dnaStruct = DNA(rawDNA, argv[2])
-	dnaStruct.json()
-	dnaStruct.svg(argv[6],argv[3],argv[4],argv[5])
-	
-	#dna2svg <filepath to .dna> <points per poly> <height> <width> <scale> <svg save path>
+		
+class MonaDNA(DNA):
+	def __init__(self, rawDNA):
+		self.polys = []
+		self.verts_per_poly, self.polys_total = tuple(struct.unpack('i',i)[0] for i in (rawDNA[0:4], rawDNA[4:8]))
+		for i in [[sup('d',i)[0] for i in chunk(k,8)][0:4+int(self.verts_per_poly)*2] for k in chunk(rawDNA[8:],288)]:
+			self.polys.append(Poly(i[0],i[1],i[2],i[3],i[4:]))
+		
+class WebDNA(DNA):
+	def __init__(self, rawDNA):
+		self.polys = []
+		rawDNA = [float(i) for i in rawDNA.split(' ')]
+		self.verts_per_poly, self.polys_total = [int(i) for i in rawDNA[0:2]]
+		self.polys = [Poly(i[0],i[1],i[2],i[3],i[4:]) for i in chunk(rawDNA[2:],int(4+ 2*self.verts_per_poly))]
