@@ -1,11 +1,13 @@
 dna2
 ====
 
-Take mona and mona forks .dna files and generates .json and .svg files from them.
+Takes [mona](https://github.com/infoburp/mona) or [webmona](https://github.com/infoburp/webmona) DNA data sets and converts them to SVG and JSON files.
 
 Dependencies
 ============
--python 2.7 (which should include the struct and json modules)
+* Python 2.7
+	* struct
+	* json
+* svgwrite
 
--svgwrite
 
